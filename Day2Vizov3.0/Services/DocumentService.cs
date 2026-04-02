@@ -78,6 +78,42 @@ public class DocumentService
         return document;
     }
 
+    // НОВЫЙ МЕТОД: Обновление документа
+    public async Task<Document?> UpdateDocumentAsync(int id, string username, string role, UpdateDocumentRequest request)
+    {
+        var document = await _context.Documents
+            .Include(d => d.Owner)
+            .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+        
+        if (document == null)
+        {
+            return null;
+        }
+        
+        // Проверка прав
+        if (role == "Admin")
+        {
+            // Admin может редактировать любые документы
+        }
+        else if (role == "Manager" && document.Owner != null && document.Owner.Username == username)
+        {
+            // Manager может редактировать только свои документы
+        }
+        else
+        {
+            return null; // Нет прав
+        }
+        
+        // Обновляем поля
+        document.Title = request.Title;
+        document.Content = request.Content;
+        document.IsPublic = request.IsPublic;
+        
+        await _context.SaveChangesAsync();
+        
+        return document;
+    }
+
     public async Task<bool> DeleteDocumentAsync(int id, string username, string role)
     {
         var document = await _context.Documents
@@ -102,6 +138,10 @@ public class DocumentService
             await _context.SaveChangesAsync();
             return true;
         }
+        
+        return false;
+    }
+}
         
         return false;
     }
