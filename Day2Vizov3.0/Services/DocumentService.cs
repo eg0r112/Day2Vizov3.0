@@ -78,7 +78,6 @@ public class DocumentService
         return document;
     }
 
-    // НОВЫЙ МЕТОД: Обновление документа
     public async Task<Document?> UpdateDocumentAsync(int id, string username, string role, UpdateDocumentRequest request)
     {
         var document = await _context.Documents
