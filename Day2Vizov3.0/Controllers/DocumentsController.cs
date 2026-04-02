@@ -51,6 +51,29 @@ public class DocumentsController : ControllerBase
         });
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateDocument(int id, [FromBody] UpdateDocumentRequest request)
+    {
+        var username = User.FindFirst("username")?.Value ?? "";
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+        
+        var document = await _documentService.UpdateDocumentAsync(id, username, role, request);
+        
+        if (document == null)
+        {
+            return NotFound(new { error = "Документ не найден или у вас нет прав на его редактирование" });
+        }
+        
+        return Ok(new DocumentResponse
+        {
+            Id = document.Id,
+            Title = document.Title,
+            IsPublic = document.IsPublic,
+            OwnerName = username,
+            CreatedAt = document.CreatedAt
+        });
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDocument(int id)
     {
@@ -61,7 +84,7 @@ public class DocumentsController : ControllerBase
         
         if (!result)
         {
-            return Forbid();
+            return NotFound(new { error = "Документ не найден или у вас нет прав на его удаление" });
         }
         
         return NoContent();
